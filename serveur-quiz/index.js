@@ -31,7 +31,7 @@ const io = require('socket.io')(server, {
 
 let rooms = {};
 
-const typesDisponibles = ['qcm', 'ouverte', 'drapeau',"devineMeme", "codeTrou", "chronologie", "petitBac", "bombParty", "wikipedia", "wordle"];
+const typesDisponibles = ['qcm', 'ouverte', 'drapeau',"devineMeme", "codeTrou", "chronologie", "petitBac", "bombParty", "wikipedia", "wordle", "hexa"];
 
 const tempsType = {
   "qcm": 20,
@@ -44,6 +44,7 @@ const tempsType = {
   "bombParty": 60,
   "wikipedia": 120,
   "wordle": 90,
+  "hexa": 20,
 }
 
 const chronologieData = require('./chronologie.json');
@@ -112,7 +113,12 @@ const dictionnaireFr = new Set(
     )
 );
 
-const wordleWords = Array.from(dictionnaireFr).filter(mot => mot.length === 5);
+const wordleWordsByLength = {
+    4: Array.from(dictionnaireFr).filter(mot => mot.length === 4),
+    5: Array.from(dictionnaireFr).filter(mot => mot.length === 5),
+    6: Array.from(dictionnaireFr).filter(mot => mot.length === 6),
+    7: Array.from(dictionnaireFr).filter(mot => mot.length === 7)
+};
 
 const wikiConcepts = JSON.parse(fs.readFileSync('./concepts.json', 'utf8')).cibles;
 
@@ -168,10 +174,12 @@ const demarrerTimer = (roomCode) => {
                 
                 // S'il a gagné, il prend la difficulté max (ex: 5 points), sinon 0
                 const aGagne = room.wikiData.gagnants.includes(pId);
-                const score = aGagne ? room.questionsDejaPosees[room.questionsDejaPosees.length - 1].difficulty : 0;
+                const score = aGagne ? (room.questionsDejaPosees[room.questionsDejaPosees.length - 1]?.difficulty || 5) : 0;
 
-                // On sauvegarde exactement avec le même format que le Bomb Party !
-                room.reponsesGlobales[pId].reponses[room.questionsDejaPosees.length - 1] = [cheminString, score];
+                // On sauvegarde dans reponsesGlobales pour la review
+                if (room.reponsesGlobales[pId]) {
+                  room.reponsesGlobales[pId].reponses[room.questionsDejaPosees.length - 1] = [cheminString, score];
+                }
               });
             }
             // ---------------------------------------------------
@@ -200,26 +208,34 @@ async function passerALaSuite(roomCode) {
 
         
 
-        const participantsIds = Object.keys(room.reponsesGlobales);
-        const currentId = participantsIds[room.indexJoueurReview];
-        const dataJ = room.reponsesGlobales[currentId];
-
-        if (!dataJ) {
-            passerAuSuivant(); 
-            return;        
+        // On synchronise sur la liste actuelle des joueurs pour la review
+        const joueurActuel = room.joueurs[room.indexJoueurReview];
+        if (!joueurActuel) {
+            room.indexJoueurReview = 0;
+            room.indexQuestionReview++;
+            return passerALaSuite(roomCode);
         }
 
-        const reponseInfo = dataJ.reponses[room.indexQuestionReview] || ["Aucune réponse", false];
+        const dataJ = room.reponsesGlobales[joueurActuel.permanentId] || { pseudo: joueurActuel.pseudo, reponses: [] };
+        const reponseInfo = dataJ.reponses[room.indexQuestionReview] || ["Aucune réponse", 0];
         const questionPosee = room.questionsDejaPosees[room.indexQuestionReview];
+
+        // Formatage de la réponse si c'est un tableau (Wikipedia parcours)
+        let reponseTexte = reponseInfo[0];
+        if (Array.isArray(reponseTexte)) reponseTexte = reponseTexte.join(" ➔ ");
+        if (reponseTexte === null || reponseTexte === undefined) reponseTexte = "Pas de réponse";
 
         if (questionPosee.type === "wordle") {
             try {
-                const wordleData = JSON.parse(reponseInfo[0]);
+                const wordleData = JSON.parse(reponseTexte);
                 io.to(roomCode).emit("update_etat", wordleData.won);
             } catch (e) {
                 io.to(roomCode).emit("update_etat", false);
             }
-        } else if (questionPosee.data.reponse === reponseInfo[0]) {
+        } else if (questionPosee.type === "wikipedia") {
+            // Pour Wikipedia, la réussite est déterminée par le score (reponseInfo[1] > 0)
+            io.to(roomCode).emit("update_etat", (reponseInfo[1] || 0) > 0);
+        } else if (questionPosee.data.reponse === reponseTexte) {
           io.to(roomCode).emit("update_etat", true);
         }
         else {
@@ -229,8 +245,8 @@ async function passerALaSuite(roomCode) {
         io.to(roomCode).emit('question_review', 
             questionPosee.data,
             questionPosee.type,
-            questionPosee.difficulty, 
-            reponseInfo[0], 
+            reponseInfo[1] || 0, 
+            reponseTexte, 
             dataJ.pseudo
         );
 
@@ -263,14 +279,28 @@ async function passerALaSuite(roomCode) {
     }
 }
 
-function genererWordleLocal() {
-    const word = wordleWords[Math.floor(Math.random() * wordleWords.length)];
+function genererHexaLocal() {
+    const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0').toUpperCase();
     return {
         quizData: {
-            question: "Wordle : Devine le mot de 5 lettres !",
-            reponse: word,
+            question: "HexaGame : Quel est le code hexadécimal de cette couleur ?",
+            reponse: randomHex,
         },
         difficulty: 5
+    };
+}
+
+function genererWordleLocal() {
+    const lengths = [4, 5, 6, 7];
+    const chosenLength = lengths[Math.floor(Math.random() * lengths.length)];
+    const words = wordleWordsByLength[chosenLength];
+    const word = words[Math.floor(Math.random() * words.length)];
+    return {
+        quizData: {
+            question: `Wordle : Devine le mot de ${chosenLength} lettres !`,
+            reponse: word,
+        },
+        difficulty: chosenLength
     };
 }
 
@@ -333,7 +363,7 @@ function nextBombPlayer(room) {
 
     // Si tout le monde est mort, on accélère la fin du jeu
     let playersAlive = room.joueurs.filter(j => room.bombData.vies[j.permanentId] > 0).length;
-    if (playersAlive <= 1) {
+    if (playersAlive <= 1 && room.tempsRestant > 5) {
         room.tempsRestant = 5; // Fera terminer le chrono global à la prochaine seconde
     }
 }
@@ -620,7 +650,6 @@ function rejoindreLobby({ socket,pseudo, permanentId, roomCode }){
 async function nouvelleQuestion(roomCode) {
   const room = rooms[roomCode];
   const type = typesDisponibles[Math.floor(Math.random() * typesDisponibles.length)];
-  //const type = "petitBac";
   room.type = type;
   
   let quizData;
@@ -773,11 +802,23 @@ async function nouvelleQuestion(roomCode) {
       
       // On stocke la réponse secrète dans la room mais on l'enlève du quizData envoyé aux clients
       room.wordleSecret = realAnswer;
+      quizData.longueur = realAnswer.length; // On informe le client de la longueur
       delete quizData.reponse; 
 
       room.questionsDejaPosees.push({ data: { ...quizData, reponse: realAnswer }, type: type, difficulty: wordleInfo.difficulty });
       demarrerTimer(roomCode);
       return { quizData, type, difficulty: wordleInfo.difficulty };
+
+    case 'hexa':
+      room.joueurs.forEach(joueur => { 
+          room.reponsesGlobales[joueur.permanentId].reponses[room.questionsDejaPosees.length] = ["#000000", 0]; 
+      });
+      const hexaInfo = genererHexaLocal();
+      quizData = { ...hexaInfo.quizData };
+      
+      room.questionsDejaPosees.push({ data: { ...quizData }, type: type, difficulty: hexaInfo.difficulty });
+      demarrerTimer(roomCode);
+      return { quizData, type, difficulty: hexaInfo.difficulty };
   }
 }
 
@@ -800,7 +841,7 @@ io.on('connection', (socket) => {
         }
 
         // 2. Calcul des statuts (Vert, Jaune, Gris)
-        const result = new Array(5).fill("absent");
+        const result = new Array(target.length).fill("absent");
         const targetLetters = target.split("");
         const guessLetters = upperWord.split("");
 
@@ -882,9 +923,21 @@ io.on('connection', (socket) => {
         // On ajoute la page cliquée au chemin du joueur
         room.wikiData.chemins[pId].push(pageCible);
 
+        // Sauvegarde en temps réel du parcours
+        if (room.reponsesGlobales[pId]) {
+            room.reponsesGlobales[pId].reponses[room.questionsDejaPosees.length - 1] = [room.wikiData.chemins[pId].join(" ➔ "), 0];
+        }
+
         // A-t-il gagné ?
         if (pageCible === room.wikiData.arrivee && !room.wikiData.gagnants.includes(pId)) {
             room.wikiData.gagnants.push(pId);
+            
+            // On met à jour le score dans la sauvegarde
+            if (room.reponsesGlobales[pId]) {
+                const score = room.questionsDejaPosees[room.questionsDejaPosees.length - 1]?.difficulty || 5;
+                room.reponsesGlobales[pId].reponses[room.questionsDejaPosees.length - 1] = [room.wikiData.chemins[pId].join(" ➔ "), score];
+            }
+
             socket.emit('wiki_win'); // On prévient le joueur qu'il a fini !
             
             // Si tout le monde a gagné, on accélère la fin
@@ -997,6 +1050,9 @@ io.on('connection', (socket) => {
 
     socket.on('send_rep', (rep) => {
       const room = rooms[socket.roomCode];
+      if (room.joueurs.length === 0) {
+      return 
+      }
     const joueur = room.joueurs.find(j => j.id === socket.id);
     if (joueur) {
         const id = joueur.permanentId;

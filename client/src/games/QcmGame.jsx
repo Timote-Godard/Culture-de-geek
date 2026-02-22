@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { ButtonRep, ButtonRepReview } from '../components/UI';
+import { LAYOUTS } from '../theme';
 
 export const QcmGame = ({ options, onChoixFait, repOuverte, theme, review, valueText, vraieReponse }) => {
   if (review) {
     return (
-      <div className={theme.optionsGrid}>
+      <div className={LAYOUTS.optionsGrid}>
         {options.map((opt, i) => (
           <ButtonRepReview
             key={i}
@@ -20,7 +21,7 @@ export const QcmGame = ({ options, onChoixFait, repOuverte, theme, review, value
   }
 
   return (
-    <div className={theme.optionsGrid}>
+    <div className={LAYOUTS.optionsGrid}>
       {options.map((opt, i) => (
         <ButtonRep
           key={i}

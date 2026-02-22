@@ -33,15 +33,15 @@ export const PetitBacGame = ({ categories, lettre, theme, remplirText, review, v
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
-      <div className="relative">
-        <div className="absolute inset-0 bg-purple-500 rounded-2xl transform rotate-3 shadow-lg"></div>
-        <div className="relative text-5xl font-black text-purple-600 bg-white w-20 h-20 flex items-center justify-center rounded-2xl shadow-xl border-4 border-slate-200 transform -rotate-3 z-10">
+    <div className="flex flex-col items-center gap-2 md:gap-6 w-full max-w-4xl px-2">
+      <div className="relative mb-2 md:mb-4">
+        <div className="absolute inset-0 bg-purple-500 rounded-xl md:rounded-2xl transform rotate-3 shadow-lg"></div>
+        <div className="relative text-3xl md:text-5xl font-black text-purple-600 bg-white w-14 h-14 md:w-20 md:h-20 flex items-center justify-center rounded-xl md:rounded-2xl shadow-xl border-2 md:border-4 border-slate-200 transform -rotate-3 z-10">
           {lettre}
         </div>
       </div>
 
-      <div className="w-full flex flex-col gap-3 mt-4">
+      <div className="w-full flex flex-col gap-2 md:gap-3 mt-2 md:mt-4">
         {categories.map((cat, i) => {
           const estLigneBonne = Array.isArray(etatLignes) ? etatLignes[i] : false;
 

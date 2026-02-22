@@ -80,7 +80,7 @@ export default function App() {
   
   const [currentThemeName] = useState("comic");
   const theme = THEMES_CONFIG[currentThemeName];
-  const choixNombreQuestions = ["5", "10", "20", "30"];
+  const choixNombreQuestions = ["2", "10", "20", "30"];
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
@@ -271,45 +271,70 @@ export default function App() {
   const envoyerChat = (texte) => { socket.emit('send_chat', texte); };
 
   const afficherContenuQuestion = (isReviewing) => {
-    const commonHeader = (
-      <div className={`${LAYOUTS.questionHeader} ${isWikiFullscreen ? 'hidden' : 'mb-8'}`}>    
-        <h1 className={theme.container.glassHeader}>
-          {questionData?.question}
-        </h1>
-        <ScoreBadge 
-          points={isReviewing && typeJeu === "petitBac" && Array.isArray(estBon) ? estBon.filter(Boolean).length : difficulty} 
-          theme={theme} 
-          className="mb-2" 
+    const questionTitle = !isWikiFullscreen && (
+      <h1 className={`${theme.container.glassHeader} mb-2`}>
+        {questionData?.question}
+      </h1>
+    );
+
+    const pointsBadge = !isWikiFullscreen && (
+      <ScoreBadge 
+        points={isReviewing && typeJeu === "petitBac" && Array.isArray(estBon) ? estBon.filter(Boolean).length : difficulty} 
+        theme={theme} 
+        className="mb-4" 
+      />
+    );
+
+    const reviewImage = isReviewing && (typeJeu === "drapeau" || typeJeu === "devineMeme") && (
+      <div className="mb-6 relative">
+        <img 
+          src={questionData.image} 
+          alt="Question"
+          className={`w-48 h-auto rounded-2xl border-4 border-white shadow-xl ${typeJeu === "devineMeme" ? "blur-0" : ""}`} 
         />
+      </div>
+    );
+
+    const reviewInfo = isReviewing && (
+      <div className="bg-purple-600 text-white px-6 py-1 rounded-full font-black text-lg uppercase tracking-wider shadow-md mb-6">
+        {pseudoReview}
+      </div>
+    );
+
+    const solutionBox = (label = "Réponse :", solution = questionData?.reponse) => isReviewing && (
+      <div className="w-full max-w-md mt-6">
+        <label className={`${theme.text.label} mb-1 block`}>{label}</label>
+        <div className={`${theme.input.game} bg-emerald-100 border-emerald-500 text-emerald-800 flex items-center justify-center min-h-[3rem] h-auto py-2`}>
+          {solution}
+        </div>
       </div>
     );
 
     switch (typeJeu) {  
       case "ouverte":
         return ( 
-          <div className="flex flex-col items-center">
-            {commonHeader}
-            {isReviewing && <p className={theme.text.reviewPseudo}> {pseudoReview} </p>}
+          <div className="flex flex-col items-center w-full">
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <OuverteGame 
                 remplirText={setRepOuverte} 
                 valueText={repOuverte}
                 review={isReviewing}
                 theme={theme}
             />
-            {isReviewing && (
-              <div className="w-full mt-10">
-                <label className={`${theme.text.label} ml-15`}> Réponse : </label>
-                <div className={theme.input.game}>{questionData.reponse}</div>
-              </div>
-            )}
+            {solutionBox()}
           </div>
         );
 
       case "qcm":
         return ( 
-          <div className="flex flex-col h-full w-full pb-8">
-            {commonHeader}
-            {isReviewing && <p className={theme.text.reviewPseudo}> {pseudoReview} </p>}
+          <div className="flex flex-col h-full w-full pb-8 items-center">
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <QcmGame 
               options={questionData.options}
               onChoixFait={setRepOuverte}
@@ -319,13 +344,17 @@ export default function App() {
               valueText={repOuverte}
               vraieReponse={questionData.reponse}
             />
+            {solutionBox()}
           </div>
         );
 
       case "drapeau": 
         return (
-          <div className="flex flex-col items-center">
-            {commonHeader}
+          <div className="flex flex-col items-center w-full">
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <DrapeauxGame 
               image={questionData.image} 
               remplirText={setRepOuverte} 
@@ -333,20 +362,17 @@ export default function App() {
               review={isReviewing}
               theme={theme}
             />
-            {isReviewing && <p className={theme.text.reviewPseudo}> {pseudoReview} </p>}
-            {isReviewing && (
-              <div className="w-full mt-10">
-                <label className={`${theme.text.label} ml-15`}> Réponse : </label>
-                <div className={theme.input.game}>{questionData.reponse}</div>
-              </div>
-            )}
+            {solutionBox()}
           </div>
         );
 
       case 'codeTrou':
         return (
           <div className="flex flex-col items-center w-full">
-            {commonHeader}
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <CodeTrouGame 
               code={questionData.code} 
               langage={questionData.langage}
@@ -355,22 +381,28 @@ export default function App() {
               review={isReviewing}
               theme={theme}
             />
-            {isReviewing && <p className={`${theme.text.reviewPseudo} mt-5`}> {pseudoReview} </p>}
-            {isReviewing && (
-              <div className="w-full max-w-md mt-4 flex flex-col items-center">
-                <label className={`${theme.text.label}`}> Vraie Réponse : </label>
-                <div className={`${theme.input.game} bg-emerald-100 border-emerald-500 text-emerald-800 font-mono flex items-center justify-center`}>
-                  {questionData.reponse}
-                </div>
-              </div>
+            {!isReviewing && (
+               <div className="w-full mt-4">
+                 <input 
+                   type="text" 
+                   placeholder="Complète le code..." 
+                   value={repOuverte} 
+                   onChange={(e) => setRepOuverte(e.target.value)} 
+                   className={theme.input.game}
+                 />
+               </div>
             )}
+            {solutionBox("Vraie Réponse :")}
           </div>
         );
 
       case 'devineMeme':
         return (
-          <div className="flex flex-col items-center">
-            {commonHeader}
+          <div className="flex flex-col items-center w-full">
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <MemeGame 
               image={questionData.image} 
               remplirText={setRepOuverte} 
@@ -378,21 +410,17 @@ export default function App() {
               review={isReviewing}
               theme={theme}
             />
-            {isReviewing && <p className={theme.text.reviewPseudo}> {pseudoReview} </p>}
-            {isReviewing && (
-              <div className="w-full mt-10">
-                <label className={`${theme.text.label} ml-15`}> Réponse : </label>
-                <div className={theme.input.game}>{questionData.reponse}</div>
-              </div>
-            )}
+            {solutionBox()}
           </div>
         );
 
       case 'chronologie':
         return (
           <div className="flex flex-col items-center w-full">
-            {commonHeader}
-            {isReviewing && <p className={`${theme.text.reviewPseudo} mt-8 uppercase`}>{pseudoReview}</p>}
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <ChronologieGame 
               items={questionData.items} 
               remplirText={setRepOuverte} 
@@ -401,13 +429,17 @@ export default function App() {
               vraieReponse={questionData.reponse}
               theme={theme}
             />
+            {isReviewing && <div className="mt-4"></div>}
           </div>
         );
 
       case 'petitBac':
         return (
           <div className="flex flex-col items-center w-full">
-            {commonHeader}
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <PetitBacGame 
               categories={questionData.categories}
               lettre={questionData.lettre}
@@ -419,20 +451,16 @@ export default function App() {
               etatLignes={estBon}
               changeEtat={changeEtat}
             />
-            {isReviewing && (
-              <div className="mt-8 relative z-10">
-                <div className="bg-purple-600 text-white px-8 py-2 rounded-xl font-black text-2xl uppercase tracking-wider shadow-[0_4px_0_rgb(107,33,168)]">
-                  {pseudoReview}
-                </div>
-              </div>
-            )}
           </div>
         );
 
       case 'bombParty':
         return (
           <div className="flex flex-col items-center w-full">
-            {commonHeader}
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <BombPartyGame 
               socket={socket}
               review={isReviewing}
@@ -440,20 +468,29 @@ export default function App() {
               estBon={estBon}
               theme={theme}
             />
+            {solutionBox("Solution possible :", questionData?.reponse)}
           </div>
         );
 
       case 'wikipedia':
         return (
           <div className="flex flex-col items-center w-full h-full">
+            {isReviewing && (
+              <>
+                {questionTitle}
+                {pointsBadge}
+                {reviewInfo}
+              </>
+            )}
             <WikipediaGame 
               depart={questionData.depart}
               arrivee={questionData.arrivee}
               socket={socket}
               review={isReviewing}
               pseudoReview={pseudoReview} 
+              remplirText={setRepOuverte}
               valueText={repOuverte}
-              estBon={estBon}
+              estBon={isReviewing ? difficulty : estBon} // Utilise le score réel pendant la review
               theme={theme}
               isFullscreen={isWikiFullscreen}
               toggleFullscreen={() => setIsWikiFullscreen(!isWikiFullscreen)}
@@ -464,10 +501,14 @@ export default function App() {
       case 'wordle':
         return (
           <div className="flex flex-col items-center w-full">
-            {commonHeader}
+            {questionTitle}
+            {pointsBadge}
+            {reviewImage}
+            {reviewInfo}
             <WordleGame 
               socket={socket}
-              reponse={questionData.reponse}
+              reponse={questionData?.reponse}
+              longueur={questionData?.longueur}
               remplirText={setRepOuverte} 
               valueText={repOuverte}
               review={isReviewing}
@@ -483,9 +524,11 @@ export default function App() {
     }
   };
 
+//<Chat historiqueChat={historiqueChat} onClick={envoyerChat} theme={theme}/>
+
   return (
     <div style={{backgroundImage: `${theme.bg.image}`,backgroundColor: `${theme.bg.color}`}} className={LAYOUTS.main}>
-      <Chat historiqueChat={historiqueChat} onClick={envoyerChat} theme={theme}/>
+      
       <BorderTimer progress={progress} visible={gameStat === "playing" && !loading} color={timeLeft < 5 ? "#ef4444" : "#3b82f6"} isFullscreen={isWikiFullscreen}>
         <div 
           className={`${LAYOUTS.card} ${isWikiFullscreen ? LAYOUTS.fullscreen : `${theme.container.card} shadow-2xl`}`}

@@ -18,8 +18,8 @@ export const OuverteGame = ({ remplirText, valueText, review, theme }) => {
 
 export const DrapeauxGame = ({ image, theme, remplirText, review, valueText }) => {
   return (
-    <div className='flex flex-col justify-center items-center gap-10'>
-      <img src={image} alt="Drapeau à deviner" className="w-48 h-auto rounded" />
+    <div className='flex flex-col justify-center items-center gap-6'>
+      {!review && <img src={image} alt="Drapeau à deviner" className="w-48 h-auto rounded shadow-lg border-2 border-white/20" />}
       <input 
         disabled={review} 
         type="text" 
@@ -34,8 +34,8 @@ export const DrapeauxGame = ({ image, theme, remplirText, review, valueText }) =
 
 export const MemeGame = ({ image, theme, remplirText, review, valueText }) => {
   return (
-    <div className='flex flex-col justify-center items-center gap-10'>
-      <img src={image} alt="Même à deviner" className={`w-48 h-auto rounded ${review ? 'blur-0' : 'blur-sm'}`} />
+    <div className='flex flex-col justify-center items-center gap-6'>
+      {!review && <img src={image} alt="Même à deviner" className={`w-48 h-auto rounded shadow-lg border-2 border-white/20 ${review ? 'blur-0' : 'blur-sm'}`} />}
       <input 
         disabled={review} 
         type="text" 

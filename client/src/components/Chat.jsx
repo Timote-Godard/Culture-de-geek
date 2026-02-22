@@ -16,7 +16,7 @@ export const Chat = ({ onClick, historiqueChat, theme }) => {
   }, [historiqueChat, open]);
 
   return (
-    <div className={`${COMPONENTS.chat.container} ${open ? "-translate-y-20" : "translate-y-full"}`}>
+    <div className={`${COMPONENTS.chat.container} ${open ? "translate-y-0" : "translate-y-[calc(100%-10px)]"}`}>
       <button
         onClick={() => setOpen(!open)}
         className={COMPONENTS.chat.button}
@@ -24,19 +24,20 @@ export const Chat = ({ onClick, historiqueChat, theme }) => {
         {open ? "▼ Fermer" : "▲ Chat"}
       </button>
 
-      <div className='h-max p-9'>
+      <div className='h-full p-4 md:p-9 flex flex-col'>
         <div className={COMPONENTS.chat.history} >
           {historiqueChat.map ((chat, index) => (
-            <p key={index}>{chat}</p>
+            <p key={index} className="mb-1 text-sm md:text-base">{chat}</p>
           ))}
           <div ref={finChatRef} />
         </div>
 
-        <div className='flex flex-row'>
+        <div className='flex flex-row gap-2 mt-auto'>
           <input
             type="text" placeholder='Écris ici...' value={texteChat} 
             onChange={(e) => changerTexteChat(e.target.value)} 
             className={`${COMPONENTS.chat.input} ${texteChat === "" ? "" : "shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)]" }`}
+            onKeyDown={(e) => { if (e.key === 'Enter') { onClick(texteChat); changerTexteChat(""); } }}
           />
           <button onClick={() => {onClick(texteChat); changerTexteChat(""); }} className={COMPONENTS.chat.sendBtn}>
             ➤

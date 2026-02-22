@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { ScoreBadge } from '../components/ScoreBadge';
 
-export const WikipediaGame = memo(({ depart, arrivee, socket, review, valueText, estBon, isFullscreen, toggleFullscreen, pseudoReview, theme }) => {
+export const WikipediaGame = memo(({ depart, arrivee, socket, review, valueText, estBon, isFullscreen, toggleFullscreen, pseudoReview, theme, remplirText }) => {
   const [currentPage, setCurrentPage] = useState(depart);
   const [hasWon, setHasWon] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,6 +41,7 @@ export const WikipediaGame = memo(({ depart, arrivee, socket, review, valueText,
   useEffect(() => {
     if (!review && depart) {
       fetchWikiPage(depart);
+      if (remplirText) remplirText(depart);
     }
   }, [depart, review]);
 
@@ -102,6 +103,13 @@ export const WikipediaGame = memo(({ depart, arrivee, socket, review, valueText,
 
         socket.emit('wiki_click', nextTitle);
         fetchWikiPage(nextTitle);
+
+        // Mise à jour locale du parcours dans repOuverte
+        if (remplirText) {
+          const currentPath = valueText || "";
+          const newPath = currentPath === "" ? nextTitle : `${currentPath} ➔ ${nextTitle}`;
+          remplirText(newPath);
+        }
       }
     };
 
@@ -117,29 +125,40 @@ export const WikipediaGame = memo(({ depart, arrivee, socket, review, valueText,
   if (review) {
     const parcours = (typeof valueText === 'string' ? valueText : "").split(' ➔ ');
     return (
-      <div className="flex flex-col items-center mt-12 animate-fade-in w-full max-w-4xl">
-        <h2 className="text-3xl text-slate-200 font-bold mb-6">Parcours de <span className="text-purple-400 uppercase">{pseudoReview}</span></h2>
+      <div className="flex flex-col items-center animate-fade-in w-full max-w-2xl px-4 py-6">
+        <div className="p-6 md:p-8 rounded-3xl w-full">
+          
+          <div className="flex flex-col items-center gap-2">
+            {parcours.map((page, index, array) => (
+              <React.Fragment key={index}>
+                <div className={`
+                  group relative flex items-center justify-center px-6 py-3 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 w-full max-w-sm text-center font-black
+                  ${index === 0 ? 'bg-blue-600 text-white ring-4 ring-blue-400/30' : 
+                    index === array.length - 1 && estBon > 0 ? 'bg-emerald-600 text-white ring-4 ring-emerald-400/30' : 
+                    'text-slate-200 bg-slate-700 border-2 border-slate-600'}
+                `}>
+                  <span className="truncate">{page}</span>
+                  {index === 0 && <span className="absolute -left-3 -top-3 bg-blue-500 text-[10px] px-2 py-1 rounded-full uppercase tracking-tighter">Départ</span>}
+                  {index === array.length - 1 && estBon > 0 && <span className="absolute -right-3 -bottom-3 bg-emerald-500 text-[10px] px-2 py-1 rounded-full uppercase tracking-tighter">Arrivée</span>}
+                </div>
+                
+                {index < array.length - 1 && (
+                  <div className="flex flex-col items-center">
+                    <span className="text-slate-500 font-black text-xl">↓</span>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
         
-        <div className="bg-slate-800 p-6 rounded-xl border-4 border-slate-700 w-full text-center leading-loose">
-          {parcours.map((page, index, array) => (
-            <span key={index} className="inline-block">
-              <span className={`font-bold px-2 py-1 rounded shadow-sm ${index === 0 ? 'bg-blue-600 text-white' : index === array.length - 1 && estBon > 0 ? 'bg-emerald-600 text-white' : 'text-slate-800 bg-slate-200'}`}>
-                {page}
-              </span>
-              {index < array.length - 1 && <span className="mx-2 text-slate-500 font-black">➔</span>}
-            </span>
-          ))}
-        </div>
-        <div className="mt-8">
-          {estBon > 0 ? (
-            <div className="flex flex-col items-center">
-              <ScoreBadge points={estBon} theme={theme} className="scale-150 mb-8" />
-              <p className="text-emerald-400 font-black uppercase tracking-widest mt-4">Objectif Atteint !</p>
+        {!estBon && parcours.length > 0 && (
+          <div className="mt-10 bg-rose-500/20 border-2 border-rose-500/50 px-8 py-3 rounded-2xl">
+            <div className="text-rose-500 text-2xl font-black uppercase tracking-widest animate-pulse text-center">
+              Objectif non atteint
             </div>
-          ) : (
-            <p className="text-rose-500 text-4xl font-black">Perdu...</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }

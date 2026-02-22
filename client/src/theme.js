@@ -98,24 +98,24 @@ export const LAYOUTS = {
   // Lobby
   lobby: `${CONFIG_VISUELLE.MOBILE.lobby} ${CONFIG_VISUELLE.COMPUTER.lobby} rounded-xl items-center`,
   room: `${CONFIG_VISUELLE.MOBILE.room} ${CONFIG_VISUELLE.COMPUTER.room} flex flex-col items-center`,
-  playersList: `grid grid-cols-1 gap-3 w-full h-[35vh] overflow-y-auto custom-scrollbar p-2 mb-6 rounded-xl ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-2xl text-center`,
-  playersListTitle: "mb-1 font-black text-base text-purple-900 uppercase tracking-widest text-center w-full block",
+  playersList: `grid grid-cols-1 gap-2 md:gap-3 w-full h-[25vh] md:h-[35vh] overflow-y-auto custom-scrollbar p-2 mb-4 md:mb-6 rounded-xl ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-xl md:text-2xl text-center`,
+  playersListTitle: "mb-1 font-black text-xs md:text-base text-purple-900 uppercase tracking-widest text-center w-full block",
 
   // Game & UI
   gameView: "h-full w-full flex flex-col",
   timerContainer: "shrink-0 flex flex-col items-center pt-1 md:pt-6 z-0",
   contentArea: "flex-1 w-full flex flex-col items-center overflow-y-auto custom-scrollbar",
-  progressBar: "shrink-0 w-full p-4 md:p-6 pt-2 z-10",
-  progressBarBg: "w-full h-4 rounded-full overflow-hidden shadow-inner",
+  progressBar: "shrink-0 w-full p-3 md:p-6 pt-1 md:pt-2 z-10",
+  progressBarBg: "w-full h-3 md:h-4 rounded-full overflow-hidden shadow-inner",
   
   // Question internals
-  questionHeader: "flex flex-col w-full gap-2 items-center text-center ",
-  optionsGrid: "flex flex-wrap justify-center mb-5 gap-2 md:gap-4",
+  questionHeader: "flex flex-col w-full gap-1 md:gap-2 items-center text-center ",
+  optionsGrid: "grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full px-2 md:px-0 mb-4 md:mb-8",
 
   // Review
   reviewView: "h-full w-full flex flex-col",
   reviewContent: "flex-1 overflow-y-auto w-full p-4 md:p-6 pb-2 flex flex-col items-center custom-scrollbar",
-  reviewFooter: "shrink-0 w-full p-4 px-6 flex justify-end gap-4 z-10",
+  reviewFooter: "shrink-0 w-full p-4 px-6 flex flex-col md:flex-row justify-center md:justify-end gap-2 md:gap-4 z-10",
 
   // Results
   results: "w-full max-w-4xl p-4 md:p-5",
@@ -125,11 +125,11 @@ export const LAYOUTS = {
 
 export const COMPONENTS = {
   chat: {
-    container: "hidden md:block fixed bottom-0 right-10 z-50 flex flex-col bg-purple-400 w-80 h-96 rounded-2xl shadow-[0_120px_0_rgb(147,51,234)] transition-transform duration-500 ease-[cubic-bezier(0.34,1.20,0.64,1)]",
-    button: `absolute -top-12 right-0 h-12 px-6 ounded-t-xl border-t-4 border-l-4 border-r-4 border-purple-600 border-b-0 font-bold text-lg transition-all duration-300 flex items-center gap-2 border-2 border-purple-600  bg-slate-100 text-purple-600 p-2 rounded-xl font-bold text-xl transition-all shadow-[0_6px_0_rgb(147,51,234)] ${COLORS.hover} active:translate-y-[6px] active:shadow-none`,
-    history: "h-70 overflow-y-scroll shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)] rounded-xl p-2 text-purple-900",
-    input: "p-3 border-2 mt-1 text-purple-800 border-[rgba(0,0,0,0.1)] transition-all duration-100 outline-none focus:shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] rounded-xl w-full",
-    sendBtn: "w-max border border-[rgba(0,0,0,0.3)] rounded-xl font-bold text-[rgba(0,0,0,0.5)] shadow-[0_3px_0_rgba(0,0,0,0.3)] hover:cursor-pointer active:translate-y-[3px] active:shadow-none mt-1 ml-1 mb-1 p-1 pl-5 pr-5",
+    container: "fixed bottom-0 right-4 md:right-10 z-[110] flex flex-col bg-purple-400 w-[calc(100%-2rem)] md:w-80 h-80 md:h-96 rounded-t-2xl shadow-[0_120px_0_rgb(147,51,234)] transition-transform duration-500 ease-[cubic-bezier(0.34,1.20,0.64,1)]",
+    button: `absolute -top-10 right-0 h-10 px-4 rounded-t-xl border-t-2 border-l-2 border-r-2 border-purple-600 border-b-0 font-bold text-base transition-all duration-300 flex items-center gap-2 border-2 border-purple-600 bg-slate-100 text-purple-600 p-2 rounded-t-xl font-bold transition-all shadow-[0_4px_0_rgb(147,51,234)] ${COLORS.hover} active:translate-y-[4px] active:shadow-none`,
+    history: "h-56 md:h-70 overflow-y-scroll shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)] rounded-xl p-2 text-purple-900 bg-slate-50/50",
+    input: "p-2 md:p-3 border-2 mt-1 text-purple-800 border-[rgba(0,0,0,0.1)] transition-all duration-100 outline-none focus:shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] rounded-xl w-full text-sm md:text-base",
+    sendBtn: "w-max border border-[rgba(0,0,0,0.3)] rounded-xl font-bold text-[rgba(0,0,0,0.5)] shadow-[0_3px_0_rgba(0,0,0,0.3)] hover:cursor-pointer active:translate-y-[3px] active:shadow-none mt-1 ml-1 mb-1 p-1 px-4 md:px-5",
   },
   photoProfil: {
     container: "relative h-44 w-40 flex items-end justify-center group cursor-pointer mx-auto mb-10 mt-5 z-0",
@@ -183,16 +183,16 @@ export const THEMES_CONFIG = {
     container: {
       centered: "flex items-center justify-center min-h-screen bg-cover bg-center",
       // La carte principale (Lobby, Jeu, etc.)
-      card: `${COLORS.purple.bg} ${BASES_COMIC.card} flex flex-row gap-4 justify-center `,
+      card: `${COLORS.purple.bg} ${BASES_COMIC.card} flex flex-col gap-4 justify-center `,
       // Le header blanc "verre" pour les questions
-      glassHeader: "w-full p-5 text-2xl font-black text-purple-700 bg-white/90 backdrop-blur-md rounded-3xl border-b-[10px] border-purple-900/20 text-center uppercase",
+      glassHeader: "w-full p-3 md:p-5 text-lg md:text-2xl font-black text-purple-700 bg-white/90 backdrop-blur-md rounded-2xl md:rounded-3xl border-b-[6px] md:border-b-[10px] border-purple-900/20 text-center uppercase leading-tight md:leading-normal",
     },
 
     input: {
       // Input standard (Lobby)
-      lobby: `${BASES_COMIC.input} ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.text} ${SHADOWS.input.css} `,
+      lobby: `${BASES_COMIC.input} ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.text} ${SHADOWS.input.css} text-base md:text-xl`,
       // Input de jeu (plus gros)
-      game: `${BASES_COMIC.input} ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-2xl h-12 text-center`,
+      game: `${BASES_COMIC.input} ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-xl md:text-2xl h-10 md:h-12 text-center`,
 
       disabled: `${BASES_COMIC.input} ${COLORS.purple.border} ${COLORS.purple.text} ${SHADOWS.input.css} ${COLORS.slate.disabled}`,
     },
@@ -202,15 +202,15 @@ export const THEMES_CONFIG = {
       disabled:`
         ${BASES_COMIC.btn} brightness-95
         ${COLORS.slate.bg} ${COLORS.purple.text} ${COLORS.purple.border} 
-        translate-y-[6px]  ${COLORS.slate.disabled}
-        p-4 text-xl
+        translate-y-[4px] md:translate-y-[6px]  ${COLORS.slate.disabled}
+        p-3 md:p-4 text-lg md:text-xl
       `,
 
       primary: `
         ${BASES_COMIC.btn} ${COLORS.hover}
         ${COLORS.slate.bg} ${COLORS.purple.text} ${COLORS.purple.border} 
         ${SHADOWS.small.css} ${SHADOWS.small.active}
-        p-4 text-xl
+        p-3 md:p-4 text-lg md:text-xl
       `,
       
       // Gros bouton de réponse (Jeu) - ADAPTÉ MOBILE
@@ -218,22 +218,22 @@ export const THEMES_CONFIG = {
         ${BASES_COMIC.btn} ${COLORS.hover}
         ${COLORS.slate.bg} ${COLORS.purple.text} ${COLORS.purple.border}
         ${SHADOWS.large.css} ${SHADOWS.large.active}
-        p-2 w-full md:w-120 h-16 md:h-50 md:mr-15 mt-2 md:mt-5 mb-2 md:mb-5 text-lg md:text-xl
+        p-2 w-full md:w-120 h-14 md:h-50 md:mr-15 mt-1 md:mt-5 mb-1 md:mb-5 text-sm md:text-xl
       `,
 
       // Petit bouton carré (Choix nombres)
       choice: `
         ${BASES_COMIC.btn} ${COLORS.hover}
-        bg-slate-200 ${COLORS.purple.text} ${COLORS.purple.border}
+        bg-slate-100 ${COLORS.purple.text} ${COLORS.purple.border}
         ${SHADOWS.small.css} ${SHADOWS.small.active}
-        p-2 w-15 h-max mr-2 text-xl
+        p-2 w-12 md:w-15 h-max mr-1 md:mr-2 text-base md:text-xl
       `,
 
       choiceDisabled: `
         ${BASES_COMIC.btn} 
          ${COLORS.slate.disabled} ${COLORS.purple.text} ${COLORS.purple.border}
         ${SHADOWS.small.css} 
-        p-2 w-15 h-max mr-2 text-xl
+        p-2 w-12 md:w-15 h-max mr-1 md:mr-2 text-base md:text-xl
       `,
 
       // États spécifiques
@@ -241,19 +241,19 @@ export const THEMES_CONFIG = {
         wrong: `font-bold rounded-xl border-2
           ${COLORS.status.error} ${COLORS.purple.text} ${COLORS.purple.border}
           ${SHADOWS.large.css}
-          p-2 w-full md:w-120 h-16 md:h-50 md:mr-15 mt-2 md:mt-5 mb-2 md:mb-5 text-lg md:text-xl}`,
+          p-2 w-full md:w-120 h-14 md:h-50 md:mr-15 mt-1 md:mt-5 mb-1 md:mb-5 text-sm md:text-xl}`,
 
         correct: `font-bold rounded-xl border-2
           ${COLORS.status.success} ${COLORS.purple.text} ${COLORS.purple.border}
           ${SHADOWS.large.css}
-          p-2 w-full md:w-120 h-16 md:h-50 md:mr-15 mt-2 md:mt-5 mb-2 md:mb-5 text-lg md:text-xl}`,
+          p-2 w-full md:w-120 h-14 md:h-50 md:mr-15 mt-1 md:mt-5 mb-1 md:mb-5 text-sm md:text-xl}`,
 
         neutral: `font-bold rounded-xl border-2
           ${COLORS.status.neutral} ${COLORS.purple.text} ${COLORS.purple.border}
           ${SHADOWS.large.css}
-          p-2 w-full md:w-120 h-16 md:h-50 md:mr-15 mt-2 md:mt-5 mb-2 md:mb-5 text-lg md:text-xl}`,
+          p-2 w-full md:w-120 h-14 md:h-50 md:mr-15 mt-1 md:mt-5 mb-1 md:mb-5 text-sm md:text-xl}`,
           pressed: "translate-y-[6px] shadow-none brightness-100",
-          pressedGame: "translate-y-[15px] shadow-none brightness-100",
+          pressedGame: "translate-y-[12px] md:translate-y-[15px] shadow-none brightness-100",
           disabled: "opacity-50 cursor-not-allowed active:translate-y-0 active:shadow-[0_6px_0_rgb(147,51,234)]"
 
         },
@@ -263,29 +263,29 @@ export const THEMES_CONFIG = {
           ${BASES_COMIC.btn} ${COLORS.status.error} 
           ${COLORS.purple.text} ${COLORS.purple.border} 
         ${SHADOWS.small.css} ${SHADOWS.small.active} ${COLORS.hover}
-        p-4 text-xl`,
+        p-3 md:p-4 text-lg md:text-xl`,
           disabled: "opacity-50 cursor-not-allowed active:translate-y-0 active:shadow-[0_6px_0_rgb(147,51,234)]",
 
         correct: `
           ${BASES_COMIC.btn} ${COLORS.status.success}
           ${COLORS.purple.text} ${COLORS.purple.border} 
         ${SHADOWS.small.css} ${SHADOWS.small.active}
-        p-4 text-xl`,
+        p-3 md:p-4 text-lg md:text-xl`,
 
         },
         
       },
 
     text: {
-      label: "text-purple-900 font-black text-sm uppercase ml-1 w-full",
-      title: "text-slate-100 font-bold text-sm uppercase ml-1",
-      timer: "text-4xl font-bold",
-      loading: "text-slate-100 font-black text-5xl text-center",
-      reviewPseudo: "text-center text-4xl mb-5 font-bold text-slate-100 drop-shadow-md w-full",
-      resultTitle: "text-3xl font-black text-white text-center mb-8",
+      label: "text-purple-900 font-black text-[10px] md:text-sm uppercase ml-1 w-full",
+      title: "text-slate-100 font-bold text-xs md:text-sm uppercase ml-1",
+      timer: "text-2xl md:text-4xl font-bold",
+      loading: "text-slate-100 font-black text-3xl md:text-5xl text-center",
+      reviewPseudo: "text-center text-2xl md:text-4xl mb-3 md:mb-5 font-bold text-slate-100 drop-shadow-md w-full",
+      resultTitle: "text-2xl md:text-3xl font-black text-white text-center mb-6 md:mb-8",
       code: {
-        normal: "text-purple-900 font-black text-2xl ml-1 font-semibold outline-none border-b-2 border-cyan-500 focus:border-purple-400 transition-colors uppercase",
-        wrong: "text-rose-500 font-black text-2xl ml-1 font-semibold outline-none border-b-2 border-rose-500 focus:border-rose-400 transition-colors uppercase",
+        normal: "text-purple-900 font-black text-lg md:text-2xl ml-1 font-semibold outline-none border-b-2 border-cyan-500 focus:border-purple-400 transition-colors uppercase",
+        wrong: "text-rose-500 font-black text-lg md:text-2xl ml-1 font-semibold outline-none border-b-2 border-rose-500 focus:border-rose-400 transition-colors uppercase",
       }
     }
   },

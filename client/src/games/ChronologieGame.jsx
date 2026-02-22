@@ -24,16 +24,22 @@ export const ChronologieGame = ({ items, theme, remplirText, review, valueText, 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Initialisation de la liste au début d'une question
   useEffect(() => {
     if (!review && items) {
       setListe(items);
       remplirText(items.map(i => i.nom).join('|'));
-    } else if (review && valueText) {
+    }
+  }, [items]); // On n'initialise que quand les items (la question) changent
+
+  // Mise à jour de la liste uniquement en mode révision
+  useEffect(() => {
+    if (review && valueText && items) {
       const nomsJoueur = valueText.split('|');
       const listeJoueur = nomsJoueur.map(nom => items.find(i => i.nom === nom)).filter(Boolean);
       setListe(listeJoueur.length === items.length ? listeJoueur : items);
     }
-  }, [items, review, valueText]);
+  }, [review, valueText, items]);
 
   const triggerAnimation = (sourceIndex, targetIndex) => {
     if (sourceIndex === targetIndex || sourceIndex < 0 || targetIndex >= liste.length || animState.active) return;

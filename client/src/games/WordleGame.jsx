@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 
-export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseudoReview, estBon, reponse }) => {
+export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseudoReview, estBon, reponse, longueur }) => {
+  const wordLength = reponse?.length || longueur || 5;
   const [guesses, setGuesses] = useState(new Array(6).fill(""));
   const [statuses, setStatuses] = useState(new Array(6).fill(null));
   const [currentGuess, setCurrentGuess] = useState("");
@@ -9,6 +9,7 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
   const [gameOver, setGameOver] = useState(false);
   const [message, setMessage] = useState("");
   const [usedKeys, setUsedKeys] = useState({}); // { 'A': 'correct', 'B': 'absent' ... }
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     if (review && valueText) {
@@ -30,7 +31,12 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
     const handleWordleRes = ({ isValid, result, won, message: serverMsg }) => {
         if (!isValid) {
             setMessage(serverMsg || "Mot invalide !");
-            setTimeout(() => setMessage(""), 2000);
+            setShake(true);
+            setTimeout(() => {
+                setMessage("");
+                setShake(false);
+                setCurrentGuess("");
+            }, 1000);
             return;
         }
 
@@ -74,21 +80,25 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
 
     socket.on('wordle_res', handleWordleRes);
     return () => socket.off('wordle_res', handleWordleRes);
-  }, [socket, currentGuess, currentRow, guesses, statuses, usedKeys, review]);
+  }, [socket, currentGuess, currentRow, guesses, statuses, usedKeys, review, wordLength]);
 
   const onKeyPress = (key) => {
     if (gameOver || review) return;
 
     if (key === "ENTER") {
-      if (currentGuess.length !== 5) {
+      if (currentGuess.length !== wordLength) {
         setMessage("Trop court !");
-        setTimeout(() => setMessage(""), 2000);
+        setShake(true);
+        setTimeout(() => {
+            setMessage("");
+            setShake(false);
+        }, 800);
         return;
       }
       socket.emit('wordle_check_word', currentGuess);
     } else if (key === "BACKSPACE") {
       setCurrentGuess(currentGuess.slice(0, -1));
-    } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
+    } else if (currentGuess.length < wordLength && /^[A-Z]$/.test(key)) {
       setCurrentGuess(currentGuess + key);
     }
   };
@@ -103,7 +113,7 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentGuess, currentRow, gameOver, review]);
+  }, [currentGuess, currentRow, gameOver, review, wordLength]);
 
   const getLetterStyle = (letter, index, rowIdx) => {
     if (rowIdx > currentRow || (rowIdx === currentRow && !review && !gameOver)) return "bg-slate-800 border-slate-600 text-white";
@@ -130,7 +140,7 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
 
   const getKeyStyle = (key) => {
     let style = "bg-slate-400";
-    if (key === "ENTER" || key === "BACKSPACE") style = "bg-slate-500 px-4";
+    if (key === "ENTER" || key === "BACKSPACE") style = "bg-slate-500 px-2 md:px-4";
 
     const status = usedKeys[key];
     if (status === "correct") return "bg-emerald-500 text-white";
@@ -160,20 +170,23 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
           100% { transform: scale(1); }
         }
       `}</style>
-      {review && <p className="text-2xl font-bold text-white mb-2">{pseudoReview}</p>}
       
-      <div className="grid grid-rows-6 gap-2">
+
+      <div className={`grid grid-rows-6 gap-2 ${shake ? "animate-shake bg-red-500/20 p-2 rounded-xl" : ""}`}>
         {new Array(6).fill(0).map((_, rowIdx) => (
-          <div key={rowIdx} className="grid grid-cols-5 gap-2">
-            {new Array(5).fill(0).map((__, colIdx) => {
+          <div key={rowIdx} className={`grid gap-1 md:gap-2`} style={{ gridTemplateColumns: `repeat(${wordLength}, minmax(0, 1fr))` }}>
+            {new Array(wordLength).fill(0).map((__, colIdx) => {
               const letter = rowIdx === currentRow && !review ? currentGuess[colIdx] : (guesses[rowIdx] ? guesses[rowIdx][colIdx] : "");
               const isFilled = letter !== "";
               const shouldFlip = (review && guesses[rowIdx]) || rowIdx < currentRow;
               
+              const boxSize = wordLength > 6 ? "w-9 h-9 md:w-12 md:h-12" : "w-11 h-11 md:w-14 md:h-14";
+              const fontSize = wordLength > 6 ? "text-lg md:text-2xl" : "text-2xl";
+
               return (
                 <div
                   key={colIdx}
-                  className={`w-12 h-12 md:w-14 md:h-14 border-2 flex items-center justify-center text-2xl font-black rounded-sm transition-all duration-300 
+                  className={`${boxSize} ${fontSize} border-2 flex items-center justify-center font-black rounded-sm transition-all duration-300 
                     ${isFilled && rowIdx === currentRow && !review ? "letter-pop border-slate-400" : ""}
                     ${shouldFlip ? "letter-flip" : ""}
                     ${getLetterStyle(letter, colIdx, rowIdx)}`}
@@ -187,17 +200,17 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
         ))}
       </div>
 
-      {message && <div className="bg-white text-black px-4 py-2 rounded-lg font-bold animate-bounce z-50">{message}</div>}
+      {message && <div className={`bg-white text-black px-4 py-2 rounded-lg font-bold animate-bounce z-50 ${shake ? "border-2 border-red-500" : ""}`}>{message}</div>}
 
       {!review && !gameOver && (
-        <div className="flex flex-col gap-2 mt-4 w-full">
+        <div className="flex flex-col gap-1 md:gap-2 mt-2 md:mt-4 w-full px-2">
           {getKeys().map((row, i) => (
             <div key={i} className="flex justify-center gap-1">
               {row.map((key) => (
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`h-12 rounded font-bold text-sm md:text-base flex items-center justify-center min-w-[30px] ${getKeyStyle(key)}`}
+                  className={`h-10 md:h-12 rounded font-bold text-[10px] md:text-sm flex items-center justify-center min-w-[24px] md:min-w-[30px] flex-1 ${getKeyStyle(key)}`}
                 >
                   {key === "BACKSPACE" ? "⌫" : key}
                 </button>
