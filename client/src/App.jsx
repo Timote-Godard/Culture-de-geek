@@ -28,6 +28,7 @@ import { PetitBacGame } from './games/PetitBacGame';
 import { BombPartyGame } from './games/BombPartyGame';
 import { QcmGame } from './games/QcmGame';
 import { OuverteGame, DrapeauxGame, MemeGame, CodeTrouGame } from './games/OuverteGame';
+import { RgbGame } from './games/RgbGame';
 
 // ==================================================================================
 // LOGIQUE DE L'APPLICATION
@@ -47,6 +48,7 @@ export default function App() {
   const [questionData, setQuestionData] = useState(null);
   const [indexQuestion, setIndexQuestion] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [nextGameInfo, setNextGameInfo] = useState({ name: "", description: "" });
   const [nombreQuestions, setNombreQuestions] = useState(0);
   const [repOuverte, setRepOuverte] = useState("");
   const [lobby, setLobby] = useState([]);
@@ -70,6 +72,7 @@ export default function App() {
   const [cantJoin, setCantJoin] = useState(false);
   const [difficulty, setDifficulty] = useState(0);
   const [isWikiFullscreen, setIsWikiFullscreen] = useState(false);
+  const [errorStart, setErrorStart] = useState("");
 
   useEffect(() => {
     const permanentPseudo = localStorage.getItem('pseudoQuiz');
@@ -197,7 +200,13 @@ export default function App() {
       }, 500);
     });
 
-    socket.on('loading_status', (isLoading) => { setLoading(isLoading); });
+    socket.on('loading_status', (data) => { 
+      const isLoading = typeof data === 'object' ? data.loading : data;
+      setLoading(isLoading); 
+      if (typeof data === 'object' && data.nextGame) {
+        setNextGameInfo({ name: data.nextGame, description: data.description || "" });
+      }
+    });
     socket.on('question_review', (question,type,difficulty,rep,pseudo) => {
       setGameStat("review");
       setDifficulty(difficulty);
@@ -256,6 +265,11 @@ export default function App() {
   const isinRoom = () => { return lobby.find(j => j.permanentId === permanentId); };
 
   const lancerPartieSocket = () => {
+    if (nombreQuestions === 0) {
+      setErrorStart("Choisis un nombre de questions !");
+      setTimeout(() => setErrorStart(""), 3000);
+      return;
+    }
     setLoading(true);
     socket.emit('start_game', nombreQuestions);
   };
@@ -519,16 +533,31 @@ export default function App() {
           </div>
         );
 
+      case 'rgb':
+        return (
+          <div className="flex flex-col items-center w-full">
+            {questionTitle}
+            {pointsBadge}
+            {reviewInfo}
+            <RgbGame 
+              theme={theme}
+              remplirText={setRepOuverte}
+              valueText={repOuverte}
+              review={isReviewing}
+              pseudoReview={pseudoReview}
+              reponse={questionData?.reponse}
+            />
+          </div>
+        );
+
       default:
         return <p className="text-white">Chargement du type de question...</p>;
     }
   };
 
-//<Chat historiqueChat={historiqueChat} onClick={envoyerChat} theme={theme}/>
-
   return (
     <div style={{backgroundImage: `${theme.bg.image}`,backgroundColor: `${theme.bg.color}`}} className={LAYOUTS.main}>
-      
+      <Chat historiqueChat={historiqueChat} onClick={envoyerChat} theme={theme}/>
       <BorderTimer progress={progress} visible={gameStat === "playing" && !loading} color={timeLeft < 5 ? "#ef4444" : "#3b82f6"} isFullscreen={isWikiFullscreen}>
         <div 
           className={`${LAYOUTS.card} ${isWikiFullscreen ? LAYOUTS.fullscreen : `${theme.container.card} shadow-2xl`}`}
@@ -603,7 +632,12 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <div className="w-full flex justify-center mt-2">
+                  <div className="w-full flex flex-col items-center mt-2">
+                    {isChef && errorStart && (
+                      <p className="text-rose-500 font-black text-xs uppercase animate-bounce mb-2 bg-white/80 px-4 py-1 rounded-full shadow-sm border border-rose-200">
+                        ⚠️ {errorStart}
+                      </p>
+                    )}
                     {isChef 
                       ? <ButtonPret theme={theme} tousPrets={tousPrets()} lancerPartieSocket={lancerPartieSocket} texte="🚀 LANCER LA PARTIE"/>
                       : <ButtonPret theme={theme} tousPrets={isinRoom()} lancerPartieSocket={isPret ? annulerPretSocket : seMettrePretSocket} texte={isPret ? "PAS PRÊT" : "PRÊT"}/>
@@ -623,8 +657,21 @@ export default function App() {
               )}
               <div className={`${LAYOUTS.contentArea} ${isWikiFullscreen ? "p-0" : "p-4 md:p-6"}`}>
                 {loading ? (
-                  <div className="m-auto flex items-center justify-center">
-                    <h1 className={theme.text.loading}>{gameStat === "review" ? "Résultats..." :  "Génération de la question..."}</h1>
+                  <div className="m-auto flex flex-col items-center justify-center text-center animate-fade-in">
+                    <p className="text-purple-200 font-black text-xs md:text-sm uppercase tracking-[0.3em] mb-2 opacity-70">Prochain Jeu</p>
+                    <h1 className={`${theme.text.loading} mb-4 text-purple-100 drop-shadow-lg uppercase tracking-wider`}>
+                      {gameStat === "review" ? "Résultats..." : nextGameInfo.name}
+                    </h1>
+                    <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-xl max-w-sm">
+                      <p className="text-white font-bold text-sm md:text-lg leading-relaxed">
+                        {gameStat === "review" ? "Préparation de la suite..." : nextGameInfo.description}
+                      </p>
+                    </div>
+                    <div className="mt-8 flex gap-2">
+                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce"></div>
+                    </div>
                   </div>
                 ) : (
                   afficherContenuQuestion(false)

@@ -31,7 +31,7 @@ const io = require('socket.io')(server, {
 
 let rooms = {};
 
-const typesDisponibles = ['qcm', 'ouverte', 'drapeau',"devineMeme", "codeTrou", "chronologie", "petitBac", "bombParty", "wikipedia", "wordle", "hexa"];
+const typesDisponibles = ['qcm', 'ouverte', 'drapeau',"devineMeme", "codeTrou", "chronologie", "petitBac", "bombParty", "wikipedia", "wordle", "rgb"];
 
 const tempsType = {
   "qcm": 20,
@@ -44,7 +44,7 @@ const tempsType = {
   "bombParty": 60,
   "wikipedia": 120,
   "wordle": 90,
-  "hexa": 20,
+  "rgb": 20,
 }
 
 const chronologieData = require('./chronologie.json');
@@ -184,29 +184,58 @@ const demarrerTimer = (roomCode) => {
             }
             // ---------------------------------------------------
 
-            io.to(roomCode).emit('loading_status', true);
-            setTimeout(() => { passerALaSuite(roomCode); }, 2000);
+            io.to(roomCode).emit('loading_status', { loading: true, nextGame: "Chargement...", description: "Calcul de la suite..." });
+            setTimeout(() => { passerALaSuite(roomCode); }, 1000);
         }
     }, 1000);
 };
 
 
+const descriptionsJeux = {
+  "qcm": "Choisis la bonne réponse parmi les 4 options.",
+  "ouverte": "Tape la réponse exacte à la question posée.",
+  "drapeau": "Identifie le pays correspondant au drapeau affiché.",
+  "devineMeme" : "Retrouve le nom de ce célèbre mème internet.",
+  "codeTrou": "Complète le morceau de code manquant.",
+  "chronologie": "Remets les événements dans le bon ordre chronologique.",
+  "petitBac" : "Trouve un mot commençant par la lettre pour chaque catégorie.",
+  "bombParty": "Trouve un mot contenant la syllabe avant l'explosion !",
+  "wikipedia": "Atteins la page cible en cliquant sur les liens Wikipédia.",
+  "wordle": "Devine le mot secret en un minimum d'essais.",
+  "rgb": "Trouve les valeurs Rouge, Vert et Bleu de la couleur."
+};
+
+const nomsJeux = {
+  "qcm": "QCM",
+  "ouverte": "Question Ouverte",
+  "drapeau": "Drapeaux",
+  "devineMeme": "Mème Flou",
+  "codeTrou": "Code à Trou",
+  "chronologie": "Chronologie",
+  "petitBac": "Petit Bac",
+  "bombParty": "Bomb Party",
+  "wikipedia": "Wiki-Racing",
+  "wordle": "Wordle",
+  "rgb": "Rgb Game"
+};
+
 // Fonction utilitaire pour éviter la répétition de code
 async function passerALaSuite(roomCode) {
     const room = rooms[roomCode];
-
+    if (!room) return;
+    
+    console.log(room.nombreQuestions);
+console.log(room.questionsDejaPosees);
     if (room.questionsDejaPosees.length >= room.nombreQuestions) {
         if (room.indexQuestionReview >= room.questionsDejaPosees.length) {
             io.to(roomCode).emit("resultats", getResultatFin(room));
-            io.to(roomCode).emit('loading_status', false); // Enlève le chargement
+            io.to(roomCode).emit('loading_status', { loading: false });
             return;
         }
         if (room.timerInterval) {
             clearInterval(room.timerInterval);
             room.timerInterval = null;
         }
-
-        
 
         // On synchronise sur la liste actuelle des joueurs pour la review
         const joueurActuel = room.joueurs[room.indexJoueurReview];
@@ -250,7 +279,7 @@ async function passerALaSuite(roomCode) {
             dataJ.pseudo
         );
 
-        io.to(roomCode).emit('loading_status', false); // Enlève le chargement ici aussi !
+        io.to(roomCode).emit('loading_status', { loading: false }); 
 
         room.indexJoueurReview++;
         if (room.indexJoueurReview >= room.joueurs.length) {
@@ -262,36 +291,47 @@ async function passerALaSuite(roomCode) {
     
     // Si on arrive ici, c'est une nouvelle question :
     try {
-        const {quizData,type, difficulty} = await nouvelleQuestion(roomCode);
+        io.to(roomCode).emit('loading_status', { loading: true, nextGame: "Préparation..." });
         
-        // On envoie la question au client
-        io.to(roomCode).emit('new_question',{data: quizData, type: type, difficulty:difficulty, duration:tempsType[type]});
+        // On génère la question à l'avance pour savoir quel est le prochain jeu
+        const {quizData, type, difficulty} = await nouvelleQuestion(roomCode);
         
-        // On enlève le statut de chargement
-        io.to(roomCode).emit('loading_status', false);
-        
-        // ON DÉMARRE LE TIMER SEULEMENT MAINTENANT !
-        demarrerTimer(roomCode);
+        // On prévient les joueurs du prochain jeu
+        io.to(roomCode).emit('loading_status', { 
+            loading: true, 
+            nextGame: nomsJeux[type] || type,
+            description: descriptionsJeux[type] || ""
+        });
+
+        // On attend 5 secondes comme demandé
+        setTimeout(() => {
+            io.to(roomCode).emit('new_question',{data: quizData, type: type, difficulty:difficulty, duration:tempsType[type]});
+            io.to(roomCode).emit('loading_status', { loading: false });
+            demarrerTimer(roomCode);
+        }, 5000);
         
     } catch (err) {
         console.error(err);
-        io.to(roomCode).emit('loading_status', false);
+        io.to(roomCode).emit('loading_status', { loading: false });
     }
 }
 
-function genererHexaLocal() {
-    const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0').toUpperCase();
+function genererRgbLocal() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
     return {
         quizData: {
-            question: "HexaGame : Quel est le code hexadécimal de cette couleur ?",
-            reponse: randomHex,
+            question: "RgbGame : Trouvez les valeurs Rouge, Vert et Bleu !",
+            reponse: `rgb(${r}, ${g}, ${b})`,
+            r, g, b
         },
         difficulty: 5
     };
 }
 
 function genererWordleLocal() {
-    const lengths = [4, 5, 6, 7];
+    const lengths = [4, 5, 6];
     const chosenLength = lengths[Math.floor(Math.random() * lengths.length)];
     const words = wordleWordsByLength[chosenLength];
     const word = words[Math.floor(Math.random() * words.length)];
@@ -671,7 +711,6 @@ async function nouvelleQuestion(roomCode) {
       ({quizData,difficulty} = genererQuestionQcmLocale());
       // quizData de la forme { reponse : "", options : ["","","",""], question: ""}
       room.questionsDejaPosees.push({data:quizData,type:type, difficulty:difficulty});
-      demarrerTimer(roomCode);
         
       return {quizData, type, difficulty}
       
@@ -683,7 +722,6 @@ async function nouvelleQuestion(roomCode) {
       difficulty = qOuverte.difficulty;
 
       room.questionsDejaPosees.push({data: quizData, type: type, difficulty: difficulty});
-      demarrerTimer(roomCode);
 
       return {quizData, type, difficulty};
 
@@ -693,7 +731,6 @@ async function nouvelleQuestion(roomCode) {
       difficulty = 1;
       // quizData de la forme { reponse : "", image: ""}
       room.questionsDejaPosees.push({data:quizData,type:type, difficulty:difficulty});
-      demarrerTimer(roomCode);
       return {quizData, type, difficulty}
 
 
@@ -702,7 +739,6 @@ async function nouvelleQuestion(roomCode) {
       ({quizData,difficulty} = await memeFlou());
       // quizData de la forme { reponse : "", image: ""}
       room.questionsDejaPosees.push({data:quizData,type:type, difficulty:difficulty});
-      demarrerTimer(roomCode);
       return {quizData, type, difficulty}
 
     case 'codeTrou':
@@ -714,7 +750,6 @@ async function nouvelleQuestion(roomCode) {
       ({quizData, difficulty} = genererCodeTrouLocal());
       
       room.questionsDejaPosees.push({ data: quizData, type: type, difficulty: difficulty });
-      demarrerTimer(roomCode);
       
       return { quizData, type, difficulty };
 
@@ -726,7 +761,6 @@ async function nouvelleQuestion(roomCode) {
       const { quizData: dataChrono, difficulty: diffChrono } = genererChronologieLocale();
       
       room.questionsDejaPosees.push({ data: dataChrono, type: type, difficulty: diffChrono });
-      demarrerTimer(roomCode);
       
       return { quizData: dataChrono, type, difficulty: diffChrono };
 
@@ -739,7 +773,6 @@ async function nouvelleQuestion(roomCode) {
       const { quizData: dataBac, difficulty: diffBac } = genererPetitBacLocal();
       
       room.questionsDejaPosees.push({ data: dataBac, type: type, difficulty: diffBac });
-      demarrerTimer(roomCode);
       
       return { quizData: dataBac, type, difficulty: diffBac };
 
@@ -764,7 +797,6 @@ async function nouvelleQuestion(roomCode) {
       difficulty = 3; 
       
       room.questionsDejaPosees.push({ data: quizData, type: type, difficulty: difficulty });
-      demarrerTimer(roomCode);
       
       return { quizData, type, difficulty };
 
@@ -788,7 +820,6 @@ async function nouvelleQuestion(roomCode) {
       });
 
       room.questionsDejaPosees.push({ data: quizData, type: type, difficulty: difficulty });
-      demarrerTimer(roomCode);
       
       return { quizData, type, difficulty };
 
@@ -806,19 +837,17 @@ async function nouvelleQuestion(roomCode) {
       delete quizData.reponse; 
 
       room.questionsDejaPosees.push({ data: { ...quizData, reponse: realAnswer }, type: type, difficulty: wordleInfo.difficulty });
-      demarrerTimer(roomCode);
       return { quizData, type, difficulty: wordleInfo.difficulty };
 
-    case 'hexa':
+    case 'rgb':
       room.joueurs.forEach(joueur => { 
-          room.reponsesGlobales[joueur.permanentId].reponses[room.questionsDejaPosees.length] = ["#000000", 0]; 
+          room.reponsesGlobales[joueur.permanentId].reponses[room.questionsDejaPosees.length] = ["rgb(128, 128, 128)", 0]; 
       });
-      const hexaInfo = genererHexaLocal();
-      quizData = { ...hexaInfo.quizData };
+      const rgbInfo = genererRgbLocal();
+      quizData = { ...rgbInfo.quizData };
       
-      room.questionsDejaPosees.push({ data: { ...quizData }, type: type, difficulty: hexaInfo.difficulty });
-      demarrerTimer(roomCode);
-      return { quizData, type, difficulty: hexaInfo.difficulty };
+      room.questionsDejaPosees.push({ data: { ...quizData }, type: type, difficulty: rgbInfo.difficulty });
+      return { quizData, type, difficulty: rgbInfo.difficulty };
   }
 }
 
@@ -1073,7 +1102,7 @@ io.on('connection', (socket) => {
       if (!isChef) {
         return;
       }
-        io.to(socket.roomCode).emit('loading_status', true); // Tout le monde voit "Chargement..."
+        io.to(socket.roomCode).emit('loading_status', { loading: true, nextGame: "Initialisation..." }); 
         
         try {
             room.questionsDejaPosees = [];
@@ -1083,15 +1112,24 @@ io.on('connection', (socket) => {
 
             const {quizData, type, difficulty} = await nouvelleQuestion(socket.roomCode);
             
-            // On envoie le signal de départ et la 1ère question à tout le monde
-            io.to(socket.roomCode).emit('game_started', {data:quizData,type:type, difficulty:difficulty, duration:tempsType[type]});
-            io.to(socket.roomCode).emit('loading_status', false);
+            // On informe du premier jeu
+            io.to(socket.roomCode).emit('loading_status', { 
+                loading: true, 
+                nextGame: nomsJeux[type] || type,
+                description: descriptionsJeux[type] || ""
+            });
+
+            // On attend 5 secondes
+            setTimeout(() => {
+                io.to(socket.roomCode).emit('game_started', {data:quizData,type:type, difficulty:difficulty, duration:tempsType[type]});
+                io.to(socket.roomCode).emit('loading_status', { loading: false });
+                demarrerTimer(socket.roomCode);
+            }, 5000);
+
         } catch (err) {
             console.error(err);
-            io.to(socket.roomCode).emit('loading_status', false);
+            io.to(socket.roomCode).emit('loading_status', { loading: false });
         }
-        
-        
     });
 
     socket.on('change_nb_questions', (n) => {
