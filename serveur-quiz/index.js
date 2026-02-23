@@ -555,4 +555,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3001, () => console.log("Serveur Multi lancé sur le port 3001"));
+server.listen(process.env.PORT, () => console.log("Serveur Multi lancé sur le port 3001"));

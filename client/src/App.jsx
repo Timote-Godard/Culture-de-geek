@@ -7,7 +7,6 @@ import { THEMES_CONFIG, LAYOUTS, DIMENSIONS, CONFIG_VISUELLE } from './theme';
 
 // Import des composants utilitaires
 import { BorderTimer } from './components/BorderTimer';
-import { Chat } from './components/Chat';
 import { PhotoProfil } from './components/PhotoProfil';
 import { OtpInput } from './components/OtpInput';
 import { ScoreBadge } from './components/ScoreBadge';
@@ -140,7 +139,7 @@ export default function App() {
 
   useEffect(() => {
     if (!socket) {
-      socket = io('http://localhost:3001');
+      socket = io('https://culture-de-geek.onrender.com/');
       socket.on('connect', () => { console.log("Connecté avec le socket :", socket.id); });
     }
 
@@ -557,7 +556,6 @@ export default function App() {
 
   return (
     <div style={{backgroundImage: `${theme.bg.image}`,backgroundColor: `${theme.bg.color}`}} className={LAYOUTS.main}>
-      <Chat historiqueChat={historiqueChat} onClick={envoyerChat} theme={theme}/>
       <BorderTimer progress={progress} visible={gameStat === "playing" && !loading} color={timeLeft < 5 ? "#ef4444" : "#3b82f6"} isFullscreen={isWikiFullscreen}>
         <div 
           className={`${LAYOUTS.card} ${isWikiFullscreen ? LAYOUTS.fullscreen : `${theme.container.card} shadow-2xl`}`}
