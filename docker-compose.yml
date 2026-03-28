@@ -1,0 +1,22 @@
+services:
+
+  quiz-backend:
+    build: ./dossier-de-ton-backend 
+    container_name: quiz-api
+    restart: always
+    ports:
+      - "3001:3001" 
+
+
+  quiz-frontend:
+    build: 
+      context: ./client
+      args:
+
+        - VITE_BACKEND_URL=https://api-quiz.timote.ovh 
+    container_name: quiz-web
+    restart: always
+    ports:
+      - "8086:80"
+    depends_on:
+      - quiz-backend

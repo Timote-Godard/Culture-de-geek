@@ -39,6 +39,8 @@ if (!permanentId) {
     localStorage.setItem('idQuiz', permanentId);
 }
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
 let socket;
 
 export default function App() {
@@ -139,7 +141,9 @@ export default function App() {
 
   useEffect(() => {
     if (!socket) {
-      socket = io('https://culture-de-geek.onrender.com/');
+
+      socket = io(backendUrl);
+
       socket.on('connect', () => { console.log("Connecté avec le socket :", socket.id); });
     }
 
