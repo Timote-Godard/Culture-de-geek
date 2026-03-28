@@ -182,7 +182,7 @@ async function passerALaSuite(roomCode) {
             io.to(roomCode).emit('new_question',{data: quizData, type: type, difficulty:difficulty, duration:tempsType[type]});
             io.to(roomCode).emit('loading_status', { loading: false });
             demarrerTimer(roomCode);
-        }, 5000);
+        }, 3000);
         
     } catch (err) {
         console.error(err);

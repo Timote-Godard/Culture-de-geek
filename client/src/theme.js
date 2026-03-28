@@ -82,7 +82,7 @@ export const DIMENSIONS = {
   // Ordinateur (Appliqué avec md:)
   COMPUTER: {
     lobby: "w-115 h-180",
-    loading: "w-180 h-40",
+    loading: "w-180 h-80",
     playing: "w-400 h-250",
     review: "w-400 h-220",
     resultat: "w-200 h-200"
@@ -98,13 +98,13 @@ export const LAYOUTS = {
   // Lobby
   lobby: `${CONFIG_VISUELLE.MOBILE.lobby} ${CONFIG_VISUELLE.COMPUTER.lobby} rounded-xl items-center`,
   room: `${CONFIG_VISUELLE.MOBILE.room} ${CONFIG_VISUELLE.COMPUTER.room} flex flex-col items-center`,
-  playersList: `grid grid-cols-1 gap-2 md:gap-3 w-full h-[25vh] md:h-[35vh] overflow-y-auto custom-scrollbar p-2 mb-4 md:mb-6 rounded-xl ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-xl md:text-2xl text-center`,
+  playersList: `grid grid-cols-1 gap-2 md:gap-3 w-full h-[25vh] md:h-[20vh] overflow-y-auto custom-scrollbar p-2 mb-4 md:mb-6 rounded-xl ${COLORS.slate.bg} ${COLORS.purple.border} ${COLORS.purple.textDark} ${SHADOWS.input.css} text-xl md:text-2xl text-center`,
   playersListTitle: "mb-1 font-black text-xs md:text-base text-purple-900 uppercase tracking-widest text-center w-full block",
 
   // Game & UI
   gameView: "h-full w-full flex flex-col",
   timerContainer: "shrink-0 flex flex-col items-center pt-1 md:pt-6 z-0",
-  contentArea: "flex-1 w-full flex flex-col items-center overflow-y-auto custom-scrollbar",
+  contentArea: "flex-1 w-full flex flex-col items-center",
   progressBar: "shrink-0 w-full p-3 md:p-6 pt-1 md:pt-2 z-10",
   progressBarBg: "w-full h-3 md:h-4 rounded-full overflow-hidden shadow-inner",
   
@@ -118,7 +118,7 @@ export const LAYOUTS = {
   reviewFooter: "shrink-0 w-full p-4 px-6 flex flex-col md:flex-row justify-center md:justify-end gap-2 md:gap-4 z-10",
 
   // Results
-  results: "w-full max-w-4xl p-4 md:p-5",
+  results: "w-full max-w-4xl p-4 md:p-5 flex flex-col h-full",
   resultsList: "flex flex-col gap-2",
   resultsItem: "bg-white/90 p-4 rounded-xl flex justify-between items-center font-bold text-purple-800 animate-bounce",
 };

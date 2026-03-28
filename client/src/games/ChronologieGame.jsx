@@ -42,7 +42,11 @@ export const ChronologieGame = ({ items, theme, remplirText, review, valueText, 
   }, [review, valueText, items]);
 
   const triggerAnimation = (sourceIndex, targetIndex) => {
-    if (sourceIndex === targetIndex || sourceIndex < 0 || targetIndex >= liste.length || animState.active) return;
+
+
+    if (review || animState.active || sourceIndex === targetIndex) return; 
+    
+    if (sourceIndex < 0 || targetIndex >= liste.length) return;
 
     const sourceEl = itemsRef.current[sourceIndex];
     const targetEl = itemsRef.current[targetIndex];
@@ -132,6 +136,9 @@ export const ChronologieGame = ({ items, theme, remplirText, review, valueText, 
           ${!review && !isCorrection ? 'border-purple-500 cursor-grab active:cursor-grabbing' : borderColor}
           ${hoverIndex === index && !animState.active && dragItem.current !== index ? 'brightness-125 border-dashed scale-[0.98]' : ''}
           ${animState.source === index ? 'shadow-2xl brightness-110' : ''}
+          
+          /* 👇 AJOUTE CES DEUX LIGNES ICI 👇 */
+          ${(review || isCorrection) ? 'pointer-events-none select-none' : ''} 
         `}
       >
         <div className="w-20 h-20 md:w-full md:h-32 shrink-0 overflow-hidden rounded-xl">
@@ -163,13 +170,8 @@ export const ChronologieGame = ({ items, theme, remplirText, review, valueText, 
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-5xl py-4 overflow-x-hidden"> 
+    <div className="flex flex-col items-center gap-6 w-full max-w-5xl py-4 relative z-40">
       <div className={`flex flex-col md:flex-row justify-center items-stretch gap-3 md:gap-4 w-full relative px-4 md:px-0 ${isMobile ? 'max-w-sm' : ''}`}>
-        <div className={`absolute bg-slate-700/50 rounded-full -z-10
-          ${isMobile 
-            ? 'left-1/2 -translate-x-1/2 w-2 h-[90%] top-[5%]' 
-            : 'top-1/2 -translate-y-1/2 w-[90%] left-[5%] h-2'}
-        `}></div>
         {liste.map((item, index) => renderCard(item, index))}
       </div>
 

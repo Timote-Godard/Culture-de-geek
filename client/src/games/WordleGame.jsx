@@ -176,7 +176,12 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
         {new Array(6).fill(0).map((_, rowIdx) => (
           <div key={rowIdx} className={`grid gap-1 md:gap-2`} style={{ gridTemplateColumns: `repeat(${wordLength}, minmax(0, 1fr))` }}>
             {new Array(wordLength).fill(0).map((__, colIdx) => {
-              const letter = rowIdx === currentRow && !review ? currentGuess[colIdx] : (guesses[rowIdx] ? guesses[rowIdx][colIdx] : "");
+              const hasStatus = statuses[rowIdx] !== null;
+
+              const letter = hasStatus 
+                ? (guesses[rowIdx] ? guesses[rowIdx][colIdx] : "") 
+                : (rowIdx === currentRow && !review ? currentGuess[colIdx] : "");
+
               const isFilled = letter !== "";
               const shouldFlip = (review && guesses[rowIdx]) || rowIdx < currentRow;
               
@@ -200,7 +205,6 @@ export const WordleGame = ({ socket, theme, remplirText, review, valueText, pseu
         ))}
       </div>
 
-      {message && <div className={`bg-white text-black px-4 py-2 rounded-lg font-bold animate-bounce z-50 ${shake ? "border-2 border-red-500" : ""}`}>{message}</div>}
 
       {!review && !gameOver && (
         <div className="flex flex-col gap-1 md:gap-2 mt-2 md:mt-4 w-full px-2">

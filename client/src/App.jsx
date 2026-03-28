@@ -84,7 +84,7 @@ export default function App() {
   
   const [currentThemeName] = useState("comic");
   const theme = THEMES_CONFIG[currentThemeName];
-  const choixNombreQuestions = ["2", "10", "20", "30"];
+  const choixNombreQuestions = ["5", "10", "20", "30"];
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
@@ -609,7 +609,7 @@ export default function App() {
                         `}>
                           <div className="flex items-center">
                              {index === 0 ? 
-                               <img className='w-8 h-8 animate-bounce' src='/images/couronne.png' alt="chef" />
+                               <img className='w-8 h-8' src='/images/couronne.png' alt="chef" />
                                : 
                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-400 text-xs">
                                  {index + 1}
@@ -634,14 +634,14 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <div className="w-full flex flex-col items-center mt-2">
+                  <div className="w-full flex flex-col items-center mt-4">
                     {isChef && errorStart && (
-                      <p className="text-rose-500 font-black text-xs uppercase animate-bounce mb-2 bg-white/80 px-4 py-1 rounded-full shadow-sm border border-rose-200">
+                      <p className="text-rose-500 font-black text-xs uppercase mb-2 bg-white/80 px-4 py-1 rounded-full shadow-sm border border-rose-200">
                         ⚠️ {errorStart}
                       </p>
                     )}
                     {isChef 
-                      ? <ButtonPret theme={theme} tousPrets={tousPrets()} lancerPartieSocket={lancerPartieSocket} texte="🚀 LANCER LA PARTIE"/>
+                      ? <ButtonPret theme={theme} tousPrets={tousPrets()} lancerPartieSocket={lancerPartieSocket} texte="LANCER LA PARTIE"/>
                       : <ButtonPret theme={theme} tousPrets={isinRoom()} lancerPartieSocket={isPret ? annulerPretSocket : seMettrePretSocket} texte={isPret ? "PAS PRÊT" : "PRÊT"}/>
                     }
                   </div>
@@ -652,14 +652,14 @@ export default function App() {
             <div className={LAYOUTS.gameView}>
               {!loading && !isWikiFullscreen && (
                 <div className={LAYOUTS.timerContainer}>
-                  <div className={`${CONFIG_VISUELLE.MOBILE.timerText} ${CONFIG_VISUELLE.COMPUTER.timerText} font-bold ${timeLeft < 5 ? 'text-red-500 animate-pulse' : 'text-blue-600'}`}>
+                  <div className={`${CONFIG_VISUELLE.MOBILE.timerText} ${CONFIG_VISUELLE.COMPUTER.timerText} font-bold ${timeLeft < 5 ? 'text-red-500' : 'text-blue-600'}`}>
                       {timeLeft}s
                   </div>
                 </div>
               )}
-              <div className={`${LAYOUTS.contentArea} ${isWikiFullscreen ? "p-0" : "p-4 md:p-6"}`}>
+              <div className={`${LAYOUTS.contentArea} ${isWikiFullscreen ? "p-0" : "p-4 md:p-6"} ${loading ? "overflow-hidden" : "overflow-y-auto custom-scrollbar"}`}>
                 {loading ? (
-                  <div className="m-auto flex flex-col items-center justify-center text-center animate-fade-in">
+                  <div className="m-auto flex flex-col items-center justify-center text-center">
                     <p className="text-purple-200 font-black text-xs md:text-sm uppercase tracking-[0.3em] mb-2 opacity-70">Prochain Jeu</p>
                     <h1 className={`${theme.text.loading} mb-4 text-purple-100 drop-shadow-lg uppercase tracking-wider`}>
                       {gameStat === "review" ? "Résultats..." : nextGameInfo.name}
@@ -670,9 +670,9 @@ export default function App() {
                       </p>
                     </div>
                     <div className="mt-8 flex gap-2">
-                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                       <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce"></div>
+                       <div className="w-3 h-3 bg-purple-400 rounded-full [animation-delay:-0.3s]"></div>
+                       <div className="w-3 h-3 bg-purple-400 rounded-full [animation-delay:-0.15s]"></div>
+                       <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
                     </div>
                   </div>
                 ) : (
