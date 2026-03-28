@@ -1,7 +1,7 @@
 services:
 
   quiz-backend:
-    build: ./dossier-de-ton-backend 
+    build: ./serveur-quiz
     container_name: quiz-api
     restart: always
     ports:
